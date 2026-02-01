@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Voice AI Bot</title>
+</head>
+
+<body>
+
+    <h3>🎙️ Voice AI Bot</h3>
+
+    <button onclick="start()">Start Speaking</button>
+
+    <p><b>You:</b> <span id="userText">---</span></p>
+    <p><b>Bot:</b> <span id="botText">---</span></p>
+
+    <script>
+        const SpeechRecognition =
+            window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = "en-US";
+
+        function start() {
+            recognition.start();
+        }
+
+        recognition.onresult = async (event) => {
+            const userSpeech = event.results[0][0].transcript;
+            document.getElementById("userText").innerText = userSpeech;
+
+            const response = await fetch("/ask", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ question: userSpeech })
+            });
+
+            const data = await response.json();
+            document.getElementById("botText").innerText = data.answer;
+
+            const speakOut = new SpeechSynthesisUtterance(data.answer);
+            window.speechSynthesis.speak(speakOut);
+        };
+    </script>
+
+</body>
+
+</html>
